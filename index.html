@@ -345,7 +345,8 @@ const ICON_YELLOW='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAAB
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const {
   useState,
-  useRef
+  useRef,
+  useEffect
 } = React;
 
 /* ===== design tokens ===== */
@@ -799,6 +800,45 @@ function Bar({
     }
   }));
 }
+/* live "resets in" countdown */
+function fmtCountdown(ms) {
+  if (ms < 0) ms = 0;
+  let s = Math.floor(ms / 1000);
+  const d = Math.floor(s / 86400);
+  s -= d * 86400;
+  const h = Math.floor(s / 3600);
+  s -= h * 3600;
+  const m = Math.floor(s / 60);
+  s -= m * 60;
+  const p = n => String(n).padStart(2, '0');
+  return d > 0 ? d + 'd ' + p(h) + 'h ' + p(m) + 'm' : p(h) + 'h ' + p(m) + 'm ' + p(s) + 's';
+}
+function resetTarget(period) {
+  const now = new Date();
+  if (period === 'weekly') {
+    const add = (8 - now.getDay()) % 7 || 7;
+    const t = new Date(now);
+    t.setHours(0, 0, 0, 0);
+    t.setDate(t.getDate() + add);
+    return t.getTime();
+  }
+  if (period === 'monthly') {
+    return new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
+  }
+  const t = new Date(now);
+  t.setHours(24, 0, 0, 0);
+  return t.getTime(); /* daily → next midnight */
+}
+function Countdown({
+  period
+}) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => tick(t => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return /*#__PURE__*/React.createElement(React.Fragment, null, fmtCountdown(resetTarget(period) - Date.now()));
+}
 function WarnIcon({
   color,
   size = 30
@@ -1200,7 +1240,7 @@ function Dashboard({
     }
   }, /*#__PURE__*/React.createElement(LimitCard, {
     icon: "lock",
-    title: "Session limit",
+    title: "Session Duration",
     kind: "session",
     limit: limits.session,
     onAction: () => go('session', {})
@@ -1513,7 +1553,7 @@ function CardV2({
       lineHeight: '16px',
       color: C.gray
     }
-  }, "Played today"), /*#__PURE__*/React.createElement("div", {
+  }, "Time played"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       alignItems: 'flex-end',
@@ -1551,7 +1591,7 @@ function CardV2({
       lineHeight: '16px',
       color: C.gray2
     }
-  }, "Remaining"), /*#__PURE__*/React.createElement("div", {
+  }, "Time used"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       alignItems: 'flex-end',
@@ -1726,7 +1766,7 @@ function DashboardV2({
     }
   }, /*#__PURE__*/React.createElement(CardV2, {
     icon: "hourglass",
-    title: "Session limit",
+    title: "Session Duration",
     kind: "session",
     limit: limits.session,
     onEdit: () => go('session', {}),
@@ -1816,7 +1856,9 @@ function CardV3({
   }
   const pill = PILL[limit.status];
   const subLabel = isSession ? 'Daily limit' : 'Resets in';
-  const subValue = isSession ? limit.hours + ' ' + (limit.hours === 1 ? 'hour' : 'hours') : RESET[limit.period || 'daily'];
+  const subValue = isSession ? limit.hours + ' ' + (limit.hours === 1 ? 'hour' : 'hours') : /*#__PURE__*/React.createElement(Countdown, {
+    period: limit.period || 'daily'
+  });
   const amount = limit.amount;
   const spend = !isSession ? Math.round(amount * 0.35) : 0;
   const remaining = !isSession ? amount - spend : 0;
@@ -1986,7 +2028,7 @@ function CardV3({
     style: {
       color: C.gray
     }
-  }, isSession ? 'Played today' : 'Spend'), /*#__PURE__*/React.createElement("span", {
+  }, isSession ? 'Time played' : 'Spend'), /*#__PURE__*/React.createElement("span", {
     style: {
       color: '#fff',
       fontWeight: 700
@@ -2000,7 +2042,7 @@ function CardV3({
     style: {
       color: C.gray2
     }
-  }, "Remaining"), /*#__PURE__*/React.createElement("span", {
+  }, isSession ? 'Time used' : 'Remaining'), /*#__PURE__*/React.createElement("span", {
     style: {
       color: '#fff',
       fontWeight: 700
@@ -2112,7 +2154,7 @@ function DashboardV3({
       gap: 12
     }
   }, /*#__PURE__*/React.createElement(CardV3, {
-    title: "Session limit",
+    title: "Session Duration",
     kind: "session",
     limit: limits.session,
     onEdit: () => go('session', {}),
@@ -2519,87 +2561,6 @@ function SessionEditor({
     onClick: () => commitSession(hours, isEditing),
     disabled: !hours
   }, "Continue")));
-}
-
-/* ===================================================================
-   AUTO ADJUSTMENT
-   =================================================================== */
-function AutoAdjust({
-  change,
-  go
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    className: "view",
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 24
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: 'center',
-      marginTop: 6
-    }
-  }, /*#__PURE__*/React.createElement("img", {
-    src: ICON_YELLOW,
-    alt: "",
-    width: 48,
-    height: 48,
-    style: {
-      display: 'block',
-      margin: '0 auto 12px'
-    }
-  }), /*#__PURE__*/React.createElement(Section, null, "Auto adjustment"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: C.gray2,
-      marginTop: 6,
-      lineHeight: '19px',
-      padding: '0 4px'
-    }
-  }, "To keep your limits valid (Daily \u2264 Weekly \u2264 Monthly), we\u2019ll adjust the nearest conflicting\xA0limit.")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10
-    }
-  }, change.related.map((r, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      background: C.card,
-      borderRadius: 8,
-      padding: 16
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: C.gray,
-      marginBottom: 6
-    }
-  }, r.label), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 10,
-      fontSize: 18,
-      fontWeight: 700
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: C.gray,
-      textDecoration: 'line-through'
-    }
-  }, r.from), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: C.amber
-    }
-  }, "\u2192"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: '#fff'
-    }
-  }, r.to))))), /*#__PURE__*/React.createElement(Primary, {
-    onClick: () => go('review')
-  }, "Continue"));
 }
 
 /* ===================================================================
@@ -3110,7 +3071,6 @@ function App() {
     dashboard: 'Limits',
     deposit: 'Deposit Limit',
     session: 'Session Limit',
-    autoadjust: 'Auto Adjustment',
     review: 'Review & Confirm',
     remove: 'Remove Limit'
   };
