@@ -2123,6 +2123,99 @@ function DashboardV3({
 /* ===================================================================
    DEPOSIT EDITOR
    =================================================================== */
+/* ===== shared "Resulting changes" block (action-grouped) ===== */
+const ACTION_STYLE = {
+  created: {
+    ic: 'plus',
+    bg: 'rgba(0,172,77,0.18)',
+    c: '#00AC4D'
+  },
+  removed: {
+    ic: 'trash',
+    bg: 'rgba(255,122,122,0.15)',
+    c: '#FF7A7A'
+  },
+  aligned: {
+    ic: 'refresh',
+    bg: 'rgba(255,177,36,0.18)',
+    c: '#FFB124'
+  },
+  updated: {
+    ic: 'pencil',
+    bg: 'rgba(0,186,220,0.15)',
+    c: '#00BADC'
+  }
+};
+function ActionBlock({
+  title,
+  items,
+  style
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8,
+      ...style
+    }
+  }, title && /*#__PURE__*/React.createElement(Section, null, title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#113255',
+      borderRadius: 8,
+      padding: '4px 16px'
+    }
+  }, items.map((c, i) => {
+    const m = ACTION_STYLE[c.k];
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 11,
+        padding: '12px 0',
+        borderBottom: i < items.length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 28,
+        height: 28,
+        flexShrink: 0,
+        borderRadius: 7,
+        background: m.bg,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    }, /*#__PURE__*/React.createElement(MiniIcon, {
+      type: m.ic,
+      color: m.c
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: FONT,
+        fontSize: 13,
+        color: '#fff'
+      }
+    }, c.title), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: FONT,
+        fontSize: 11,
+        color: '#8295AB'
+      }
+    }, c.sub)), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: FONT,
+        fontSize: 13,
+        fontWeight: c.muted ? 400 : 700,
+        color: c.muted ? '#8295AB' : '#fff'
+      }
+    }, c.value));
+  })));
+}
 function tabStyle(active) {
   return {
     flex: 1,
@@ -2152,28 +2245,6 @@ function DepositEditor({
   const periodChanged = period !== startPeriod;
   const usual = USUAL[period];
   const showRec = num > 0 && num < usual * 0.4;
-  const CH = {
-    created: {
-      ic: 'plus',
-      bg: 'rgba(0,172,77,0.18)',
-      c: '#00AC4D'
-    },
-    removed: {
-      ic: 'trash',
-      bg: 'rgba(255,122,122,0.15)',
-      c: '#FF7A7A'
-    },
-    aligned: {
-      ic: 'refresh',
-      bg: 'rgba(255,177,36,0.18)',
-      c: '#FFB124'
-    },
-    updated: {
-      ic: 'pencil',
-      bg: 'rgba(0,186,220,0.15)',
-      c: '#00BADC'
-    }
-  };
   const changes = [];
   if (num > 0) {
     if (!isEditing) changes.push({
@@ -2360,70 +2431,13 @@ function DepositEditor({
       fontSize: 11,
       color: '#8295AB'
     }
-  }, "For reference, your recent ", PERIOD_LABEL[period].toLowerCase(), " average is\xA0~", RON(usual), ".")), changes.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, "For reference, your recent ", PERIOD_LABEL[period].toLowerCase(), " average is\xA0~", RON(usual), ".")), changes.length > 0 && /*#__PURE__*/React.createElement(ActionBlock, {
+    title: "Resulting changes",
+    items: changes,
     style: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 8,
       marginTop: 'auto'
     }
-  }, /*#__PURE__*/React.createElement(Section, null, "Resulting changes"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: '#113255',
-      borderRadius: 8,
-      padding: '4px 16px'
-    }
-  }, changes.map((c, i) => {
-    const m = CH[c.k];
-    return /*#__PURE__*/React.createElement("div", {
-      key: i,
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 11,
-        padding: '12px 0',
-        borderBottom: i < changes.length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none'
-      }
-    }, /*#__PURE__*/React.createElement("span", {
-      style: {
-        width: 28,
-        height: 28,
-        flexShrink: 0,
-        borderRadius: 7,
-        background: m.bg,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }
-    }, /*#__PURE__*/React.createElement(MiniIcon, {
-      type: m.ic,
-      color: m.c
-    })), /*#__PURE__*/React.createElement("div", {
-      style: {
-        flex: 1,
-        minWidth: 0
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: FONT,
-        fontSize: 13,
-        color: '#fff'
-      }
-    }, c.title), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: FONT,
-        fontSize: 11,
-        color: '#8295AB'
-      }
-    }, c.sub)), /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontFamily: FONT,
-        fontSize: 13,
-        fontWeight: c.muted ? 400 : 700,
-        color: c.muted ? '#8295AB' : '#fff'
-      }
-    }, c.value));
-  }))), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 10,
@@ -2600,83 +2614,10 @@ function Review({
     [c2, setC2] = useState(false),
     [pw, setPw] = useState('');
   const ready = c1 && c2 && pw.length >= 4;
-  const summary = /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: C.card,
-      borderRadius: 8,
-      padding: 16,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 14
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Label, null, "Primary change"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      gap: 12,
-      marginTop: 6
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 15,
-      fontWeight: 700,
-      color: '#fff'
-    }
-  }, change.primary.label), /*#__PURE__*/React.createElement("span", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-      fontSize: 16,
-      fontWeight: 700,
-      whiteSpace: 'nowrap'
-    }
-  }, change.primary.from && /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: C.gray,
-      textDecoration: 'line-through'
-    }
-  }, change.primary.from), change.primary.from && /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: C.amber
-    }
-  }, "\u2192"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: '#fff'
-    }
-  }, change.primary.to)))), change.related.length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      borderTop: `1px solid ${C.line}`,
-      paddingTop: 14
-    }
-  }, /*#__PURE__*/React.createElement(Label, null, "Related changes"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 6
-    }
-  }, change.related.map((r, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      fontSize: 13.5,
-      padding: '4px 0'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: C.gray
-    }
-  }, r.label), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: C.gray,
-      textDecoration: 'line-through'
-    }
-  }, r.from), " ", /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: '#fff',
-      fontWeight: 700
-    }
-  }, r.to)))))));
+  const summary = /*#__PURE__*/React.createElement(ActionBlock, {
+    title: "Resulting changes",
+    items: change.actions
+  });
   if (change.tightening) {
     return /*#__PURE__*/React.createElement("div", {
       className: "view",
@@ -3038,11 +2979,41 @@ function App() {
     // tightening = protective change (new cap or a reduction) → applies instantly, low friction.
     // loosening  = raising or a period switch that removes a limit → 24h delay + password.
     const tightening = !isEditing ? true : periodChanged ? false : amount < prevAmount;
-    const primary = {
-      label: PERIOD_LABEL[period] + ' Deposit' + (periodChanged ? ' (was ' + PERIOD_LABEL[origPeriod] + ')' : ''),
-      from: prevAmount != null ? RON(prevAmount) : null,
-      to: RON(amount)
-    };
+    const actions = [];
+    if (!isEditing) actions.push({
+      k: 'created',
+      title: PERIOD_LABEL[period] + ' limit created',
+      sub: 'applies for this period',
+      value: RON(amount)
+    });else if (periodChanged) {
+      actions.push({
+        k: 'created',
+        title: PERIOD_LABEL[period] + ' limit created',
+        sub: 'applies for this period',
+        value: RON(amount)
+      });
+      actions.push({
+        k: 'removed',
+        title: PERIOD_LABEL[origPeriod] + ' limit removed',
+        sub: 'stays active 24 h',
+        value: RON(eff(origPeriod)),
+        muted: true
+      });
+    } else actions.push({
+      k: 'updated',
+      title: PERIOD_LABEL[period] + ' limit updated',
+      sub: amount < prevAmount ? 'applies now' : 'applies after 24 h',
+      value: RON(amount)
+    });
+    related.forEach(r => {
+      const p = r.label.split(' ')[0].toLowerCase();
+      actions.push({
+        k: 'aligned',
+        title: PERIOD_LABEL[p] + ' auto-aligned',
+        sub: 'kept within ' + PERIOD_LABEL[period],
+        value: RON(amount)
+      });
+    });
     const descriptor = {
       kind: 'deposit',
       origPeriod,
@@ -3051,8 +3022,7 @@ function App() {
       isEditing,
       periodChanged,
       tightening,
-      primary,
-      related,
+      actions,
       apply: () => {
         setLimits(prev => {
           const L = JSON.parse(JSON.stringify(prev));
@@ -3087,20 +3057,21 @@ function App() {
       }
     };
     setChange(descriptor);
-    go(related.length > 0 ? 'autoadjust' : 'review');
+    go('review');
   }
   function commitSession(hours, isEditing) {
     const prev = limits.session.status !== 'notset' ? limits.session.hours : null;
     const tightening = !isEditing ? true : prev != null && hours < prev;
+    const val = hours + ' ' + (hours === 1 ? 'hour' : 'hours');
     setChange({
       kind: 'session',
       tightening,
-      primary: {
-        label: 'Session Limit',
-        from: prev != null ? prev + 'h' : null,
-        to: hours + ' ' + (hours === 1 ? 'hour' : 'hours')
-      },
-      related: [],
+      actions: [{
+        k: isEditing ? 'updated' : 'created',
+        title: 'Session limit ' + (isEditing ? 'updated' : 'created'),
+        sub: !isEditing ? 'applies now' : hours < prev ? 'applies now' : 'applies after 24 h',
+        value: val
+      }],
       apply: () => setLimits(p => ({
         ...p,
         session: {
@@ -3145,10 +3116,6 @@ function App() {
   };
   const canBack = view.name !== 'dashboard';
   const back = () => {
-    if (view.name === 'review' && change && change.related.length > 0) return go('autoadjust');
-    if (view.name === 'autoadjust') return go(change.kind === 'session' ? 'session' : 'deposit', {
-      period: change.period
-    });
     if (view.name === 'review') return go(change && change.kind === 'session' ? 'session' : 'deposit', {
       period: change && change.period
     });
@@ -3337,9 +3304,6 @@ function App() {
     go: go,
     commitSession: commitSession,
     removeFlow: removeFlow
-  }), view.name === 'autoadjust' && change && /*#__PURE__*/React.createElement(AutoAdjust, {
-    change: change,
-    go: go
   }), view.name === 'review' && change && /*#__PURE__*/React.createElement(Review, {
     change: change,
     go: go,
