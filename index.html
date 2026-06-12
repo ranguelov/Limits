@@ -683,6 +683,16 @@ function MiniIcon({
   }, /*#__PURE__*/React.createElement("path", _extends({
     d: "M9.5 1.8l2.7 2.7L4.6 12.1 1.6 12.4l.3-3z"
   }, st)));
+  if (type === 'refresh') return /*#__PURE__*/React.createElement("svg", {
+    width: "15",
+    height: "15",
+    viewBox: "0 0 16 16",
+    fill: "none"
+  }, /*#__PURE__*/React.createElement("path", _extends({
+    d: "M13.2 8a5.2 5.2 0 1 1-1.5-3.6"
+  }, st)), /*#__PURE__*/React.createElement("path", _extends({
+    d: "M13.6 2.4V5H11"
+  }, st)));
   return /*#__PURE__*/React.createElement("svg", {
     width: "14",
     height: "14",
@@ -2142,10 +2152,68 @@ function DepositEditor({
   const periodChanged = period !== startPeriod;
   const usual = USUAL[period];
   const showRec = num > 0 && num < usual * 0.4;
-  const related = PERIODS.filter(p => p !== period).map(p => ({
-    p,
-    l: limits[p]
-  }));
+  const CH = {
+    created: {
+      ic: 'plus',
+      bg: 'rgba(0,172,77,0.18)',
+      c: '#00AC4D'
+    },
+    removed: {
+      ic: 'trash',
+      bg: 'rgba(255,122,122,0.15)',
+      c: '#FF7A7A'
+    },
+    aligned: {
+      ic: 'refresh',
+      bg: 'rgba(255,177,36,0.18)',
+      c: '#FFB124'
+    },
+    updated: {
+      ic: 'pencil',
+      bg: 'rgba(0,186,220,0.15)',
+      c: '#00BADC'
+    }
+  };
+  const changes = [];
+  if (num > 0) {
+    if (!isEditing) changes.push({
+      k: 'created',
+      title: PERIOD_LABEL[period] + ' limit created',
+      sub: 'applies for this period',
+      value: RON(num)
+    });else if (periodChanged) {
+      changes.push({
+        k: 'created',
+        title: PERIOD_LABEL[period] + ' limit created',
+        sub: 'applies for this period',
+        value: RON(num)
+      });
+      changes.push({
+        k: 'removed',
+        title: PERIOD_LABEL[startPeriod] + ' limit removed',
+        sub: 'stays active 24 h',
+        value: RON(existing.amount),
+        muted: true
+      });
+    } else changes.push({
+      k: 'updated',
+      title: PERIOD_LABEL[period] + ' limit updated',
+      sub: num < (existing.amount || 0) ? 'applies now' : 'applies after 24 h',
+      value: RON(num)
+    });
+    const idx = PERIODS.indexOf(period);
+    PERIODS.forEach((p, pi) => {
+      if (p === period || periodChanged && p === startPeriod) return;
+      const l = limits[p];
+      if (l.status === 'notset' || l.amount == null) return;
+      if (pi < idx && l.amount > num || pi > idx && l.amount < num) changes.push({
+        k: 'aligned',
+        title: PERIOD_LABEL[p] + ' auto-aligned',
+        sub: 'kept within ' + PERIOD_LABEL[period],
+        value: RON(num)
+      });
+    });
+  }
   return /*#__PURE__*/React.createElement("div", {
     className: "view",
     style: {
@@ -2172,7 +2240,7 @@ function DepositEditor({
     key: p,
     onClick: () => setPeriod(p),
     style: tabStyle(period === p)
-  }, PERIOD_LABEL[p])))), periodChanged && isEditing && /*#__PURE__*/React.createElement(InfoBanner, null, PERIOD_LABEL[startPeriod], " limit will be removed. ", PERIOD_LABEL[period], " limit will be created."), /*#__PURE__*/React.createElement("div", {
+  }, PERIOD_LABEL[p])))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
@@ -2292,65 +2360,76 @@ function DepositEditor({
       fontSize: 11,
       color: '#8295AB'
     }
-  }, "For reference, your recent ", PERIOD_LABEL[period].toLowerCase(), " average is\xA0~", RON(usual), ".")), /*#__PURE__*/React.createElement("div", {
+  }, "For reference, your recent ", PERIOD_LABEL[period].toLowerCase(), " average is\xA0~", RON(usual), ".")), changes.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
       gap: 8,
       marginTop: 'auto'
     }
-  }, /*#__PURE__*/React.createElement(Section, null, "Related limits"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(Section, null, "Resulting changes"), /*#__PURE__*/React.createElement("div", {
     style: {
       background: '#113255',
       borderRadius: 8,
-      padding: '8px 16px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 8
+      padding: '4px 16px'
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, changes.map((c, i) => {
+    const m = CH[c.k];
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 11,
+        padding: '12px 0',
+        borderBottom: i < changes.length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 28,
+        height: 28,
+        flexShrink: 0,
+        borderRadius: 7,
+        background: m.bg,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    }, /*#__PURE__*/React.createElement(MiniIcon, {
+      type: m.ic,
+      color: m.c
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: FONT,
+        fontSize: 13,
+        color: '#fff'
+      }
+    }, c.title), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: FONT,
+        fontSize: 11,
+        color: '#8295AB'
+      }
+    }, c.sub)), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: FONT,
+        fontSize: 13,
+        fontWeight: c.muted ? 400 : 700,
+        color: c.muted ? '#8295AB' : '#fff'
+      }
+    }, c.value));
+  }))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
-      flexDirection: 'column'
-    }
-  }, related.map(({
-    p,
-    l
-  }, i) => /*#__PURE__*/React.createElement("div", {
-    key: p,
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '10px 0',
-      borderBottom: i < related.length - 1 ? `1px solid rgba(255,255,255,0.08)` : 'none',
-      fontSize: 14
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: C.gray
-    }
-  }, PERIOD_LABEL[p]), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontWeight: 700,
-      color: l.status === 'notset' ? C.gray : '#fff'
-    }
-  }, l.status === 'notset' ? 'Not Set' : RON(l.amount))))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      paddingBottom: 10
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: FONT,
-      fontWeight: 400,
-      fontSize: 12,
-      lineHeight: '16px',
-      color: C.gray
-    }
-  }, "Daily \u2264 Weekly \u2264 Monthly. Conflicts are adjusted automatically.")))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 10
+      gap: 10,
+      ...(changes.length ? {} : {
+        marginTop: 'auto'
+      })
     }
   }, isEditing && existing.status !== 'removal' && /*#__PURE__*/React.createElement(Secondary, {
     danger: true,
