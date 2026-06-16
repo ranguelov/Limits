@@ -1,0 +1,25 @@
+{
+  "tool": "mrbit-limits-commenter",
+  "version": 2,
+  "generatedAt": "2026-06-16T09:15:08.366Z",
+  "round2": {
+    "total": 15,
+    "comments": [
+      { "frameId": "v3-empty", "type": "change-comp", "target": "button (иконка i у заголовка)", "text": "Иконку \"i\" сделать размером 16x16px" },
+      { "frameId": "v3-empty", "type": "change-comp", "target": "notset card", "text": "Желтую точку убрать, надпись изменить на Not configurated" },
+      { "frameId": "v3-empty", "type": "change-comp", "target": "иконка карточки", "text": "Не нравятся иконки 1/7/31, нужны иконки, лучше отражающие смысл карточек" },
+      { "frameId": "v3-empty", "type": "change-comp", "target": "Session duration card", "text": "Слой настроек сессии должен называться Session duration, а не Session limit" },
+      { "frameId": "v3-empty", "type": "change-comp", "target": "tooltip / поповер", "text": "Тултип чуть уже (на 24-32px), пункты через буллиты" },
+      { "frameId": "v3-mixed", "type": "change-comp", "target": "статус Updating", "text": "Иконка i по высоте текста, выравнена; убрать слово Updating —, текст полностью жёлтый regular; иконка i 12x12px" },
+      { "frameId": "v3-mixed", "type": "change-comp", "target": "статус Removing", "text": "Высота плашки = высоте кнопки Cancel removal; расположить НАД кнопкой; относится ко всем таким сообщениям" },
+      { "frameId": "dep-create", "type": "change-comp", "target": "input Amount", "text": "Цвет плейсхолдера = A8B0BF (как label)" },
+      { "frameId": "dep-edit", "type": "change-comp", "target": "button Use 1,000", "text": "Не border, а fill, синий 007894" },
+      { "frameId": "dep-edit", "type": "change-comp", "target": "заголовок Resulting changes", "text": "Дать контекст будущего: изменения произойдут, а не произошли" },
+      { "frameId": "rev-loosen", "type": "change-comp", "target": "password placeholder", "text": "Цвет A3ACC1" },
+      { "frameId": "remove", "type": "change-comp", "target": "info 24h", "text": "Жёлтая стилистика как на главной: бледно-жёлтая подложка, жёлтая иконка/текст, иконка 12x12px" },
+      { "frameId": "remove", "type": "change-comp", "target": "password placeholder", "text": "Цвет A3ACC1" },
+      { "frameId": "remove", "type": "change-comp", "target": "info 24h", "text": "Внедрить сообщение в блок Current limit, под значением, внутри блока" },
+      { "frameId": "toast", "type": "note", "target": "вся страница", "text": "Разный контекст: добавление как есть; исправление/удаление — указать время до действия (23h 59m 34s)" }
+    ]
+  }
+}

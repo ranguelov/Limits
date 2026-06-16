@@ -26,7 +26,9 @@ body{background:#0a0a0c;font-family:'Open Sans',system-ui,sans-serif;display:fle
 .scrollarea::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input{font-family:inherit}
-input::placeholder{color:#A8B0BF}
+input::placeholder{color:#A8B0BF;opacity:1}
+.amt-input::placeholder{color:#A8B0BF;opacity:1}
+.pw-input::placeholder{color:#A3ACC1;opacity:1}
 @keyframes slideUp{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes fade{from{opacity:0}to{opacity:1}}
 .view{animation:slideUp .2s ease}
@@ -989,18 +991,27 @@ function InfoBanner({
     }
   }, children));
 }
-function AttIcon() {
+function AttIcon({
+  size = 16
+} = {}) {
   return /*#__PURE__*/React.createElement("svg", {
-    width: "16",
-    height: "16",
-    viewBox: "0 0 16 16",
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
     fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
     xmlns: "http://www.w3.org/2000/svg"
-  }, /*#__PURE__*/React.createElement("path", {
-    fillRule: "evenodd",
-    clipRule: "evenodd",
-    d: "M8 0C12.4183 0 16 3.58172 16 8C16 12.4183 12.4183 16 8 16C3.58172 16 0 12.4183 0 8C0 3.58172 3.58172 0 8 0ZM8 11C7.44772 11 7 11.4477 7 12C7 12.5523 7.44772 13 8 13C8.5523 13 9 12.5523 9 12C9 11.4477 8.5523 11 8 11ZM8 3C7.48716 3 7.06449 3.38604 7.00673 3.88338L7 4V9C7 9.5523 7.44772 10 8 10C8.5128 10 8.9355 9.614 8.9933 9.1166L9 9V4C9 3.44772 8.5523 3 8 3Z",
-    fill: "currentColor"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "10"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 16v-4"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 8h.01"
   }));
 }
 function DashBanner() {
@@ -2108,6 +2119,468 @@ function DashboardV3({
 }
 
 /* ===================================================================
+   DASHBOARD — VERSION 4  (final / default)
+   =================================================================== */
+function CountTo({
+  ts
+}) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => tick(t => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const ms = Math.max(0, (ts || 0) - Date.now());
+  const s = Math.floor(ms / 1000),
+    h = Math.floor(s / 3600),
+    m = Math.floor(s % 3600 / 60),
+    sec = s % 60;
+  const p = n => String(n).padStart(2, '0');
+  return /*#__PURE__*/React.createElement(React.Fragment, null, p(h) + 'h ' + p(m) + 'm ' + p(sec) + 's');
+}
+function SectionInfo({
+  title,
+  lines
+}) {
+  const [open, setOpen] = useState(false);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: FONT,
+      fontWeight: 700,
+      fontSize: 16,
+      lineHeight: '24px',
+      color: '#fff'
+    }
+  }, title), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setOpen(o => !o),
+    "aria-label": "Info",
+    style: {
+      width: 16,
+      height: 16,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: open ? '#00BADC' : '#A8B0BF'
+    }
+  }, /*#__PURE__*/React.createElement(AttIcon, {
+    size: 16
+  })), open && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    onClick: () => setOpen(false),
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 9
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      top: 26,
+      left: 0,
+      zIndex: 10,
+      width: 248,
+      background: '#0A2D50',
+      border: '1px solid rgba(255,255,255,0.12)',
+      borderRadius: 8,
+      padding: 14,
+      boxShadow: '0 10px 28px rgba(0,0,0,.5)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, lines.map((l, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: 'flex',
+      gap: 8,
+      fontFamily: FONT,
+      fontSize: 12,
+      lineHeight: '17px',
+      color: '#fff'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#5DCAA5',
+      flexShrink: 0
+    }
+  }, "\u2022"), /*#__PURE__*/React.createElement("span", null, l))))));
+}
+function CardV4({
+  title,
+  kind,
+  limit,
+  onEdit,
+  onRemove,
+  onCancelRemove
+}) {
+  const notset = limit.status === 'notset';
+  const isSession = kind === 'session';
+  const period = limit.period || 'daily';
+  const iconBox = /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 40,
+      height: 40,
+      flexShrink: 0,
+      borderRadius: 12,
+      background: '#16416F',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, isSession ? /*#__PURE__*/React.createElement(IcoSession, null) : /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: FONT,
+      fontWeight: 800,
+      fontSize: 18,
+      lineHeight: '20px',
+      color: '#fff'
+    }
+  }, DAYNUM[period]));
+  if (notset) {
+    return /*#__PURE__*/React.createElement("button", {
+      onClick: onEdit,
+      style: {
+        textAlign: 'left',
+        width: '100%',
+        background: '#113255',
+        borderRadius: 8,
+        padding: 16,
+        display: 'flex',
+        gap: 12,
+        alignItems: 'center'
+      }
+    }, iconBox, /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: FONT,
+        fontWeight: 700,
+        fontSize: 14,
+        lineHeight: '20px',
+        color: '#fff'
+      }
+    }, title), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: FONT,
+        fontWeight: 400,
+        fontSize: 12,
+        lineHeight: '16px',
+        color: C.gray
+      }
+    }, "Not configured"))), /*#__PURE__*/React.createElement(ChevronRight, null));
+  }
+  const pill = PILL[limit.status];
+  const amount = limit.amount;
+  const subLabel = isSession ? 'Up to' : 'Total limit';
+  const subValue = isSession ? limit.hours + ' ' + (limit.hours === 1 ? 'hour' : 'hours') : RON(amount);
+  const spend = !isSession ? Math.round(amount * 0.35) : 0;
+  const remaining = !isSession ? amount - spend : 0;
+  const dPct = !isSession && amount ? Math.round(spend / amount * 100) : 0;
+  const totalMin = isSession && limit.hours ? limit.hours * 60 : 0;
+  const played = Math.round(totalMin * 0.6875);
+  const used = totalMin - played;
+  const fmt = m => Math.floor(m / 60) + 'h ' + m % 60 + 'm';
+  const sPct = totalMin ? Math.round(played / totalMin * 100) : 0;
+  const pending = limit.status === 'pending',
+    removal = limit.status === 'removal';
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      borderRadius: 8,
+      overflow: 'hidden',
+      width: '100%',
+      background: '#113255'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 16,
+      display: 'flex',
+      gap: 12,
+      alignItems: 'center'
+    }
+  }, iconBox, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 2
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: FONT,
+      fontWeight: 700,
+      fontSize: 14,
+      lineHeight: '20px',
+      color: '#fff'
+    }
+  }, title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 4,
+      alignItems: 'center',
+      fontSize: 12,
+      lineHeight: '16px'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: C.gray2
+    }
+  }, subLabel), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#fff',
+      fontWeight: 600
+    }
+  }, subValue))), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flexShrink: 0,
+      padding: '4px 8px',
+      borderRadius: 4,
+      background: pill.bg,
+      color: pill.c,
+      fontFamily: FONT,
+      fontWeight: 600,
+      fontSize: 12,
+      lineHeight: '16px'
+    }
+  }, pill.t)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '4px 16px 16px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      fontSize: 12,
+      lineHeight: '16px'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'flex',
+      gap: 4
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: C.gray
+    }
+  }, isSession ? 'Time played' : 'Spend'), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#fff',
+      fontWeight: 700
+    }
+  }, isSession ? fmt(played) : RON(spend))), /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'flex',
+      gap: 4
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: C.gray2
+    }
+  }, isSession ? 'Time used' : 'Remaining'), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#fff',
+      fontWeight: 700
+    }
+  }, isSession ? fmt(used) : RON(remaining)))), /*#__PURE__*/React.createElement(Bar, {
+    pct: isSession ? sPct : dPct
+  })), (pending || removal) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      alignItems: 'center',
+      background: pill.bg,
+      borderRadius: 8,
+      padding: '0 12px',
+      height: 32
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: pill.c,
+      flexShrink: 0,
+      display: 'flex'
+    }
+  }, /*#__PURE__*/React.createElement(AttIcon, {
+    size: 12
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: FONT,
+      fontWeight: 400,
+      fontSize: 12,
+      lineHeight: '16px',
+      color: pill.c,
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
+    }
+  }, pending ? 'New limit applies on ' : 'Expires on ', limit.date, limit.dateTs ? /*#__PURE__*/React.createElement(React.Fragment, null, " (", /*#__PURE__*/React.createElement(CountTo, {
+    ts: limit.dateTs
+  }), ")") : null)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, removal ? /*#__PURE__*/React.createElement("button", {
+    onClick: onCancelRemove,
+    style: {
+      flex: 1,
+      height: 32,
+      borderRadius: 6,
+      boxSizing: 'border-box',
+      border: '2px solid rgba(0,186,220,0.2)',
+      background: 'transparent',
+      color: '#fff',
+      fontFamily: FONT,
+      fontWeight: 700,
+      fontSize: 14,
+      lineHeight: '16px'
+    }
+  }, "Cancel removal") : /*#__PURE__*/React.createElement("button", {
+    onClick: onRemove,
+    style: {
+      flex: 1,
+      height: 32,
+      borderRadius: 6,
+      boxSizing: 'border-box',
+      border: '2px solid rgba(0,186,220,0.2)',
+      background: 'transparent',
+      color: '#fff',
+      fontFamily: FONT,
+      fontWeight: 700,
+      fontSize: 14,
+      lineHeight: '16px'
+    }
+  }, "Remove"), !removal && /*#__PURE__*/React.createElement("button", {
+    onClick: onEdit,
+    style: {
+      flex: 1,
+      height: 32,
+      borderRadius: 6,
+      background: '#007894',
+      color: '#fff',
+      fontFamily: FONT,
+      fontWeight: 700,
+      fontSize: 14,
+      lineHeight: '16px'
+    }
+  }, "Edit"))));
+}
+function DashboardV4({
+  limits,
+  go,
+  removeFlow,
+  cancelRemove
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "view",
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement(SectionInfo, {
+    title: "Deposit limit",
+    lines: ['New limits apply immediately.', 'Edits and removals take effect after 24 hours.']
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement(CardV4, {
+    title: "Daily limit",
+    kind: "deposit",
+    limit: {
+      ...limits.daily,
+      period: 'daily'
+    },
+    onEdit: () => go('deposit', {
+      period: 'daily'
+    }),
+    onRemove: () => removeFlow('daily'),
+    onCancelRemove: () => cancelRemove('daily')
+  }), /*#__PURE__*/React.createElement(CardV4, {
+    title: "Weekly limit",
+    kind: "deposit",
+    limit: {
+      ...limits.weekly,
+      period: 'weekly'
+    },
+    onEdit: () => go('deposit', {
+      period: 'weekly'
+    }),
+    onRemove: () => removeFlow('weekly'),
+    onCancelRemove: () => cancelRemove('weekly')
+  }), /*#__PURE__*/React.createElement(CardV4, {
+    title: "Monthly limit",
+    kind: "deposit",
+    limit: {
+      ...limits.monthly,
+      period: 'monthly'
+    },
+    onEdit: () => go('deposit', {
+      period: 'monthly'
+    }),
+    onRemove: () => removeFlow('monthly'),
+    onCancelRemove: () => cancelRemove('monthly')
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement(SectionInfo, {
+    title: "Session limit",
+    lines: ['A session limit logs you out after the selected time.', 'New limits apply immediately.', 'Edits and removals take effect after 24 hours.']
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement(CardV4, {
+    title: "Session duration",
+    kind: "session",
+    limit: limits.session,
+    onEdit: () => go('session', {}),
+    onRemove: () => removeFlow('session'),
+    onCancelRemove: () => cancelRemove('session')
+  }))));
+}
+
+/* ===================================================================
    DEPOSIT EDITOR
    =================================================================== */
 /* ===== "Resulting changes" — single block, full-width dividers (Figma 8898-54121) ===== */
@@ -2124,9 +2597,20 @@ function BadgeCreate() {
     rx: "10",
     fill: "#00AC4D",
     fillOpacity: "0.2"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M15.9998 10.833C16.2757 10.833 16.4995 11.0571 16.4998 11.333V15.5H20.6667C20.9428 15.5001 21.1667 15.724 21.1667 16C21.1667 16.2761 20.9428 16.4999 20.6667 16.5H16.4998V20.667C16.4997 20.9431 16.2758 21.167 15.9998 21.167C15.7237 21.1669 15.4999 20.943 15.4998 20.667V16.5H11.3337C11.0576 16.5 10.8337 16.2761 10.8337 16C10.8338 15.7239 11.0576 15.5 11.3337 15.5H15.4998V11.333C15.5 11.0571 15.7238 10.8331 15.9998 10.833Z",
-    fill: "#00AC4D"
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "9.4",
+    y: "14.7",
+    width: "13.2",
+    height: "2.6",
+    rx: "1.3",
+    fill: "#00C24F"
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "14.7",
+    y: "9.4",
+    width: "2.6",
+    height: "13.2",
+    rx: "1.3",
+    fill: "#00C24F"
   }));
 }
 function BadgeUpdated() {
@@ -2191,6 +2675,13 @@ function ChangeBadge({
   if (k === 'removed') return /*#__PURE__*/React.createElement(BadgeRemove, null);
   return /*#__PURE__*/React.createElement(BadgeCreate, null);
 }
+const TAG_COLOR = {
+  New: '#00C24F',
+  Increase: '#FFB124',
+  Decrease: '#00BADC',
+  Adjusted: '#FFB124',
+  Remove: '#FF4E44'
+};
 function ActionBlock({
   title,
   items,
@@ -2236,13 +2727,33 @@ function ActionBlock({
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
       fontFamily: FONT,
       fontWeight: 700,
       fontSize: 14,
       lineHeight: '20px',
       color: '#fff'
     }
-  }, c.title), /*#__PURE__*/React.createElement("div", {
+  }, c.title), c.tag && /*#__PURE__*/React.createElement("span", {
+    style: {
+      flexShrink: 0,
+      fontFamily: FONT,
+      fontWeight: 700,
+      fontSize: 10,
+      lineHeight: '14px',
+      letterSpacing: '.02em',
+      textTransform: 'uppercase',
+      color: TAG_COLOR[c.tag] || '#A8B0BF',
+      background: (TAG_COLOR[c.tag] || '#A8B0BF') + '22',
+      borderRadius: 4,
+      padding: '2px 6px'
+    }
+  }, c.tag)), /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: FONT,
       fontWeight: 400,
@@ -2281,50 +2792,37 @@ function DepositEditor({
   commitDeposit,
   removeFlow
 }) {
-  const startPeriod = params.period || 'daily';
-  const [period, setPeriod] = useState(startPeriod);
-  const existing = limits[startPeriod];
+  const period = params.period || 'daily';
+  const existing = limits[period];
   const isEditing = existing.status !== 'notset';
   const [amount, setAmount] = useState(existing.amount != null ? String(existing.amount) : '');
   const num = parseInt(amount || '0', 10) || 0;
-  const periodChanged = period !== startPeriod;
-  const unchanged = isEditing && !periodChanged && num === (existing.amount || 0);
+  const unchanged = isEditing && num === (existing.amount || 0);
+  const usual = USUAL[period];
   const changes = [];
   if (num > 0) {
     if (!isEditing) changes.push({
       k: 'created',
-      period,
-      title: PERIOD_LABEL[period] + ' limit created',
-      sub: 'Applies for this period',
+      tag: 'New',
+      title: PERIOD_LABEL[period] + ' limit',
+      sub: 'Applies immediately',
       value: RON(num)
-    });else if (periodChanged) {
-      changes.push({
-        k: 'created',
-        period,
-        title: PERIOD_LABEL[period] + ' limit created',
-        sub: 'Applies for this period',
-        value: RON(num)
-      });
-      changes.push({
-        k: 'removed',
-        title: PERIOD_LABEL[startPeriod] + ' limit removed',
-        sub: 'Stays active 24h',
-        value: RON(existing.amount)
-      });
-    } else if (!unchanged) changes.push({
+    });else if (!unchanged) changes.push({
       k: 'updated',
-      title: PERIOD_LABEL[period] + ' limit updated',
-      sub: num < (existing.amount || 0) ? 'Applies now' : 'Applies after 24h',
+      tag: num < (existing.amount || 0) ? 'Decrease' : 'Increase',
+      title: PERIOD_LABEL[period] + ' limit',
+      sub: num < (existing.amount || 0) ? 'Applies immediately' : 'Applies in 24h',
       value: RON(num)
     });
     const idx = PERIODS.indexOf(period);
     PERIODS.forEach((p, pi) => {
-      if (p === period || periodChanged && p === startPeriod) return;
+      if (p === period) return;
       const l = limits[p];
       if (l.status === 'notset' || l.amount == null) return;
       if (pi < idx && l.amount > num || pi > idx && l.amount < num) changes.push({
         k: 'aligned',
-        title: PERIOD_LABEL[p] + ' auto-aligned',
+        tag: 'Adjusted',
+        title: PERIOD_LABEL[p] + ' limit',
         sub: 'Kept within ' + PERIOD_LABEL[period],
         value: RON(num)
       });
@@ -2342,24 +2840,6 @@ function DepositEditor({
     style: {
       display: 'flex',
       flexDirection: 'column',
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 2,
-      background: '#091635',
-      borderRadius: 8,
-      padding: 4
-    }
-  }, PERIODS.map(p => /*#__PURE__*/React.createElement("button", {
-    key: p,
-    onClick: () => setPeriod(p),
-    style: tabStyle(period === p)
-  }, PERIOD_LABEL[p])))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
       gap: 4,
       width: '100%'
     }
@@ -2373,6 +2853,7 @@ function DepositEditor({
       borderBottom: `1px solid ${C.line}`
     }
   }, /*#__PURE__*/React.createElement("input", {
+    className: "amt-input",
     value: amount === '' ? '' : parseInt(amount, 10).toLocaleString('en-US'),
     onChange: e => setAmount(e.target.value.replace(/[^0-9]/g, '')),
     inputMode: "numeric",
@@ -2415,8 +2896,45 @@ function DepositEditor({
       border: `2px solid ${num === v ? '#007894' : 'rgba(255,255,255,0.15)'}`,
       background: num === v ? '#007894' : 'transparent'
     }
-  }, v.toLocaleString('en-US'))))), changes.length > 0 && /*#__PURE__*/React.createElement(ActionBlock, {
-    title: "Resulting changes",
+  }, v.toLocaleString('en-US')))), num > 0 && num !== usual && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+      background: '#0E2C4C',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 8,
+      padding: '8px 10px 8px 12px'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: FONT,
+      fontSize: 12,
+      lineHeight: '16px',
+      color: C.gray2
+    }
+  }, "Usually you deposit around ", /*#__PURE__*/React.createElement("b", {
+    style: {
+      color: '#fff'
+    }
+  }, RON(usual))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAmount(String(usual)),
+    style: {
+      flexShrink: 0,
+      fontFamily: FONT,
+      fontSize: 12,
+      fontWeight: 700,
+      color: '#fff',
+      border: 'none',
+      borderRadius: 6,
+      padding: '6px 12px',
+      background: '#007894',
+      whiteSpace: 'nowrap'
+    }
+  }, "Use ", usual.toLocaleString('en-US')))), changes.length > 0 && /*#__PURE__*/React.createElement(ActionBlock, {
+    title: "Pending changes",
     items: changes,
     style: {
       marginTop: 'auto'
@@ -2431,14 +2949,15 @@ function DepositEditor({
     }
   }, isEditing && existing.status !== 'removal' && /*#__PURE__*/React.createElement(Secondary, {
     danger: true,
-    onClick: () => removeFlow(startPeriod)
+    onClick: () => removeFlow(period)
   }, "Remove Limit"), /*#__PURE__*/React.createElement(Primary, {
+    variant: "gradient",
     onClick: () => commitDeposit({
-      origPeriod: startPeriod,
+      origPeriod: period,
       period,
       amount: num,
       isEditing,
-      periodChanged
+      periodChanged: false
     }),
     disabled: num <= 0 || unchanged
   }, "Continue")));
@@ -2500,6 +3019,7 @@ function SessionEditor({
     danger: true,
     onClick: () => removeFlow('session')
   }, "Remove Limit"), /*#__PURE__*/React.createElement(Primary, {
+    variant: "gradient",
     onClick: () => commitSession(hours, isEditing),
     disabled: !hours || isEditing && hours === existing.hours
   }, "Continue")));
@@ -2513,15 +3033,12 @@ function Review({
   go,
   confirm
 }) {
-  const [c1, setC1] = useState(false),
-    [c2, setC2] = useState(false),
-    [pw, setPw] = useState('');
-  const ready = c1 && c2 && pw.length >= 4;
+  const [pw, setPw] = useState('');
   const summary = /*#__PURE__*/React.createElement(ActionBlock, {
-    title: "Resulting changes",
+    title: "Pending changes",
     items: change.actions
   });
-  if (change.tightening) {
+  if (!change.needsPassword) {
     return /*#__PURE__*/React.createElement("div", {
       className: "view",
       style: {
@@ -2560,27 +3077,18 @@ function Review({
         lineHeight: '18px',
         color: C.gray2
       }
-    }, "A stronger limit \u2014 ", /*#__PURE__*/React.createElement("span", {
+    }, "This limit is stricter than your current one \u2014 ", /*#__PURE__*/React.createElement("span", {
       style: {
         color: '#fff'
       }
-    }, "takes effect right away"), ".", /*#__PURE__*/React.createElement("br", null), "No\xA024h\xA0wait.")), /*#__PURE__*/React.createElement("div", {
+    }, "it takes effect immediately"), ".")), /*#__PURE__*/React.createElement("div", {
       style: {
-        marginTop: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10
+        marginTop: 'auto'
       }
     }, /*#__PURE__*/React.createElement(Primary, {
       onClick: confirm,
       variant: "gradient"
-    }, "Confirm new limit"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 11,
-        color: '#8295AB',
-        textAlign: 'center'
-      }
-    }, "Raising or removing a\xA0limit will ask for your password and\xA0a\xA024\xA0h\xA0delay.")));
+    }, "Activate protection")));
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "view",
@@ -2590,15 +3098,10 @@ function Review({
       gap: 24,
       minHeight: '100%'
     }
-  }, summary, /*#__PURE__*/React.createElement(Check, {
-    checked: c1,
-    set: setC1
-  }, "I understand how deposit limits work."), /*#__PURE__*/React.createElement(Check, {
-    checked: c2,
-    set: setC2
-  }, "Raised or removed limits remain active for 24\xA0hours."), /*#__PURE__*/React.createElement(Field, {
+  }, summary, /*#__PURE__*/React.createElement(Field, {
     label: "Confirm with password"
   }, /*#__PURE__*/React.createElement("input", {
+    className: "pw-input",
     type: "password",
     value: pw,
     onChange: e => setPw(e.target.value),
@@ -2619,7 +3122,7 @@ function Review({
     }
   }, /*#__PURE__*/React.createElement(Primary, {
     onClick: confirm,
-    disabled: !ready,
+    disabled: pw.length < 4,
     variant: "gradient"
   }, "Confirm")));
 }
@@ -2671,6 +3174,7 @@ function RemoveConfirm({
   go,
   confirm
 }) {
+  const [pw, setPw] = useState('');
   const t = limits[target];
   const name = target === 'session' ? 'Session Limit' : PERIOD_LABEL[target] + ' Deposit';
   const val = target === 'session' ? t.hours + ' ' + (t.hours === 1 ? 'hour' : 'hours') : RON(t.amount);
@@ -2702,6 +3206,12 @@ function RemoveConfirm({
       borderRadius: 8,
       padding: 16,
       display: 'flex',
+      flexDirection: 'column',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
       justifyContent: 'space-between'
     }
   }, /*#__PURE__*/React.createElement("span", {
@@ -2712,7 +3222,49 @@ function RemoveConfirm({
     style: {
       fontWeight: 700
     }
-  }, val)), /*#__PURE__*/React.createElement(InfoBanner, null, "This limit remains active for 24\xA0hours after confirmation. It\xA0will expire\xA0on ", futureDate(1), "."), /*#__PURE__*/React.createElement("div", {
+  }, val)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      alignItems: 'center',
+      background: 'rgba(255,177,36,0.12)',
+      borderRadius: 8,
+      padding: '8px 10px'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#FFB124',
+      flexShrink: 0,
+      display: 'flex'
+    }
+  }, /*#__PURE__*/React.createElement(AttIcon, {
+    size: 12
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: FONT,
+      fontSize: 12,
+      lineHeight: '16px',
+      color: '#FFB124'
+    }
+  }, "Stays active for 24\xA0hours, then expires on ", futureDate(1), "."))), /*#__PURE__*/React.createElement(Field, {
+    label: "Confirm with password"
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "pw-input",
+    type: "password",
+    value: pw,
+    onChange: e => setPw(e.target.value),
+    placeholder: "Enter password",
+    style: {
+      flex: 1,
+      background: 'transparent',
+      border: 'none',
+      outline: 'none',
+      color: '#fff',
+      fontFamily: FONT,
+      fontSize: 16,
+      lineHeight: '20px'
+    }
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 10,
@@ -2722,6 +3274,7 @@ function RemoveConfirm({
     onClick: () => go('dashboard')
   }, "Cancel"), /*#__PURE__*/React.createElement(Primary, {
     onClick: confirm,
+    disabled: pw.length < 4,
     variant: "gradient"
   }, "Remove Limit")));
 }
@@ -2777,7 +3330,9 @@ function Toast({
       overflow: 'hidden',
       textOverflow: 'ellipsis'
     }
-  }, data.subtitle)), /*#__PURE__*/React.createElement("button", {
+  }, data.subtitle, data.until ? /*#__PURE__*/React.createElement(CountTo, {
+    ts: data.until
+  }) : null)), /*#__PURE__*/React.createElement("button", {
     onClick: onClose,
     "aria-label": "Dismiss",
     style: {
@@ -2820,16 +3375,18 @@ function App() {
   const [removeTarget, setRemoveTarget] = useState(null);
   const [toast, setToast] = useState(null);
   const [closed, setClosed] = useState(false);
-  const [version, setVersion] = useState(3);
+  const [version, setVersion] = useState(4);
+  const ts24 = () => Date.now() + 24 * 3600 * 1000;
   const go = (name, params = {}) => setView({
     name,
     params
   });
   const toastTimer = useRef(null);
-  const flash = (title, subtitle) => {
+  const flash = (title, subtitle, until) => {
     setToast({
       title,
-      subtitle
+      subtitle,
+      until
     });
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 4000);
@@ -2885,35 +3442,38 @@ function App() {
     const actions = [];
     if (!isEditing) actions.push({
       k: 'created',
-      period,
-      title: PERIOD_LABEL[period] + ' limit created',
-      sub: 'Applies for this period',
+      tag: 'New',
+      title: PERIOD_LABEL[period] + ' limit',
+      sub: 'Applies immediately',
       value: RON(amount)
     });else if (periodChanged) {
       actions.push({
         k: 'created',
-        period,
-        title: PERIOD_LABEL[period] + ' limit created',
-        sub: 'Applies for this period',
+        tag: 'New',
+        title: PERIOD_LABEL[period] + ' limit',
+        sub: 'Applies immediately',
         value: RON(amount)
       });
       actions.push({
         k: 'removed',
-        title: PERIOD_LABEL[origPeriod] + ' limit removed',
+        tag: 'Remove',
+        title: PERIOD_LABEL[origPeriod] + ' limit',
         sub: 'Stays active 24h',
         value: RON(eff(origPeriod))
       });
     } else actions.push({
       k: 'updated',
-      title: PERIOD_LABEL[period] + ' limit updated',
-      sub: amount < prevAmount ? 'Applies now' : 'Applies after 24h',
+      tag: amount < prevAmount ? 'Decrease' : 'Increase',
+      title: PERIOD_LABEL[period] + ' limit',
+      sub: amount < prevAmount ? 'Applies immediately' : 'Applies in 24h',
       value: RON(amount)
     });
     related.forEach(r => {
       const p = r.label.split(' ')[0].toLowerCase();
       actions.push({
         k: 'aligned',
-        title: PERIOD_LABEL[p] + ' auto-aligned',
+        tag: 'Adjusted',
+        title: PERIOD_LABEL[p] + ' limit',
         sub: 'Kept within ' + PERIOD_LABEL[period],
         value: RON(amount)
       });
@@ -2926,6 +3486,7 @@ function App() {
       isEditing,
       periodChanged,
       tightening,
+      needsPassword: isEditing || periodChanged,
       actions,
       apply: () => {
         setLimits(prev => {
@@ -2934,7 +3495,8 @@ function App() {
             L[origPeriod] = {
               amount: L[origPeriod].amount,
               status: 'removal',
-              date: futureDate(1)
+              date: futureDate(1),
+              dateTs: ts24()
             };
             L[period] = {
               amount,
@@ -2945,7 +3507,8 @@ function App() {
             L[period] = {
               amount,
               status: tightening ? 'active' : 'pending',
-              date: tightening ? null : futureDate(1)
+              date: tightening ? null : futureDate(1),
+              dateTs: tightening ? null : ts24()
             };
           }
           related.forEach(r => {
@@ -2970,11 +3533,13 @@ function App() {
     setChange({
       kind: 'session',
       tightening,
+      needsPassword: isEditing,
       actions: [{
         k: isEditing ? 'updated' : 'created',
         session: true,
-        title: 'Session limit ' + (isEditing ? 'updated' : 'created'),
-        sub: !isEditing ? 'Applies now' : hours < prev ? 'Applies now' : 'Applies after 24h',
+        tag: !isEditing ? 'New' : hours < prev ? 'Decrease' : 'Increase',
+        title: 'Session limit',
+        sub: !isEditing ? 'Applies immediately' : hours < prev ? 'Applies immediately' : 'Applies in 24h',
         value: val
       }],
       apply: () => setLimits(p => ({
@@ -2982,7 +3547,8 @@ function App() {
         session: {
           hours,
           status: tightening ? 'active' : 'pending',
-          date: tightening ? null : futureDate(1)
+          date: tightening ? null : futureDate(1),
+          dateTs: tightening ? null : ts24()
         }
       }))
     });
@@ -2999,26 +3565,40 @@ function App() {
       [t]: {
         ...p[t],
         status: 'removal',
-        date: futureDate(1)
+        date: futureDate(1),
+        dateTs: ts24()
       }
     }));
     const rname = t === 'session' ? 'Session limit' : PERIOD_LABEL[t] + ' deposit';
-    flash(rname + ' removal scheduled', 'Active for 24h');
+    flash(rname + ' removal scheduled', 'Removes in ', ts24());
     go('dashboard');
+  }
+  function cancelRemove(t) {
+    setLimits(p => ({
+      ...p,
+      [t]: {
+        ...p[t],
+        status: 'active',
+        date: null,
+        dateTs: null
+      }
+    }));
+    const rname = t === 'session' ? 'Session limit' : PERIOD_LABEL[t] + ' deposit';
+    flash(rname + ' removal cancelled', 'Limit stays active');
   }
   function confirmChange() {
     change.apply();
     const name = change.kind === 'session' ? 'Session limit' : PERIOD_LABEL[change.period] + ' deposit';
     const added = !!(change.actions && change.actions[0] && change.actions[0].k === 'created');
     const immediate = change.tightening || change.periodChanged;
-    flash(name + (added ? ' added' : ' updated'), immediate ? 'Active now' : 'Active on ' + futureDate(1));
+    if (immediate) flash(name + (added ? ' added' : ' updated'), 'Active now');else flash(name + (added ? ' added' : ' updated'), 'Applies in ', ts24());
     setChange(null);
     go('dashboard');
   }
   const titles = {
     dashboard: 'Limits',
     deposit: 'Deposit Limit',
-    session: 'Session Limit',
+    session: 'Session duration',
     review: 'Review & Confirm',
     remove: 'Remove Limit'
   };
@@ -3070,11 +3650,23 @@ function App() {
       }
     }, "Popup closed. Choose a\xA0version of the Limits screen to\xA0open."), /*#__PURE__*/React.createElement("div", {
       style: {
-        display: 'flex',
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
         gap: 8,
         width: '100%'
       }
     }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => {
+        setVersion(4);
+        setClosed(false);
+        go('dashboard');
+      },
+      style: {
+        ...verBtn,
+        gridColumn: '1 / -1',
+        background: 'linear-gradient(90deg,#EC0766 0%,#743090 100%)'
+      }
+    }, "Version 4 \u2014 \u0438\u0442\u043E\u0433\u043E\u0432\u0430\u044F"), /*#__PURE__*/React.createElement("button", {
       onClick: () => {
         setVersion(1);
         setClosed(false);
@@ -3094,7 +3686,10 @@ function App() {
         setClosed(false);
         go('dashboard');
       },
-      style: verBtn
+      style: {
+        ...verBtn,
+        gridColumn: '1 / -1'
+      }
     }, "Version 3"))), /*#__PURE__*/React.createElement("div", {
       style: {
         padding: 16
@@ -3164,7 +3759,7 @@ function App() {
       lineHeight: '26px',
       color: '#fff'
     }
-  }, titles[view.name]), /*#__PURE__*/React.createElement("button", {
+  }, view.name === 'deposit' ? (PERIOD_LABEL[view.params.period] || 'Deposit') + ' limit' : titles[view.name]), /*#__PURE__*/React.createElement("button", {
     onClick: () => setClosed(true),
     "aria-label": "Close",
     style: {
@@ -3190,7 +3785,12 @@ function App() {
       padding: '4px 16px 20px',
       position: 'relative'
     }
-  }, view.name === 'dashboard' && (version === 3 ? /*#__PURE__*/React.createElement(DashboardV3, {
+  }, view.name === 'dashboard' && (version === 4 ? /*#__PURE__*/React.createElement(DashboardV4, {
+    limits: limits,
+    go: go,
+    removeFlow: removeFlow,
+    cancelRemove: cancelRemove
+  }) : version === 3 ? /*#__PURE__*/React.createElement(DashboardV3, {
     limits: limits,
     go: go,
     removeFlow: removeFlow
