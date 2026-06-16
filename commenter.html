@@ -5092,12 +5092,73 @@ const ROUND2 = [{
   target: 'текст тоста',
   done: 'Контекст: «Applies in / Removes in» + обратный отсчёт.'
 }];
+/* ---- Round 3 history (11 comments, applied in V6) ---- */
+const ROUND3 = [{
+  frameId: 'v3-empty',
+  type: 'change-comp',
+  target: 'иконка «i» у заголовков',
+  done: '→ заливная, 14×14 (исправлен flex-squish, оба заголовка).'
+}, {
+  frameId: 'v3-empty',
+  type: 'change-comp',
+  target: 'иконки карточек 1/7/31',
+  done: 'В работе: выбор по мудборду (100 вариантов).',
+  wip: true
+}, {
+  frameId: 'v3-empty',
+  type: 'change-comp',
+  target: 'гэп между карточками',
+  done: '→ 8px.'
+}, {
+  frameId: 'v3-mixed',
+  type: 'change-comp',
+  target: 'жёлтая плашка статуса',
+  done: 'Скругление → 6px (как у кнопок).'
+}, {
+  frameId: 'dep-edit',
+  type: 'change-comp',
+  target: 'хинт «Usually you deposit»',
+  done: 'Фон как у карточек, без обводки, паддинги 12px.'
+}, {
+  frameId: 'ses-create',
+  type: 'change-comp',
+  target: 'хедер настройки сессии',
+  done: '→ «Session duration».'
+}, {
+  frameId: 'rev-create',
+  type: 'change-comp',
+  target: 'сообщение «stricter…»',
+  done: 'Встроено внутрь блока Pending changes (бледно-зелёное, без обводки).'
+}, {
+  frameId: 'rev-create',
+  type: 'change-comp',
+  target: 'теги New/Increase',
+  done: 'Начертание Bold → Semibold.'
+}, {
+  frameId: 'rev-create',
+  type: 'change-comp',
+  target: 'иконка плюса',
+  done: 'Толщина → 1.5px.'
+}, {
+  frameId: 'remove',
+  type: 'change-comp',
+  target: 'жёлтая плашка 24ч',
+  done: 'Скругление 6px + увеличен отступ от Current limit.'
+}, {
+  frameId: 'closed',
+  type: 'change-comp',
+  target: 'выбор версии',
+  done: 'Оставлена одна итоговая (кнопка «Open Limits»), V1–V3 убраны.'
+}];
 const HISTORY = [...ROUND1.map(r => ({
   ...r,
   round: 1
 })), ...ROUND2.map(r => ({
   ...r,
   round: 2
+})), ...ROUND3.map(r => ({
+  ...r,
+  round: 3
 }))];
 const C_TYPES = [{
   id: 'delete-page',
@@ -5150,7 +5211,7 @@ function describeEl(el, root) {
 }
 
 /* ---- persistence (round 2 only; round 1 is the fixed history above) ---- */
-const LS_KEY = 'mrbit-limits-comments-round3';
+const LS_KEY = 'mrbit-limits-comments-round4';
 function loadStore() {
   try {
     return JSON.parse(localStorage.getItem(LS_KEY)) || {
@@ -5271,7 +5332,7 @@ function FrameCard({
   }, "\u0418\u0441\u0445\u043E\u0434\u043D\u0430\u044F \xB7 V3"), /*#__PURE__*/React.createElement("button", {
     className: 'ba-btn' + (mode === 'after' ? ' on' : ''),
     onClick: () => setMode('after')
-  }, "\u0421\u0435\u0439\u0447\u0430\u0441 \xB7 V5")), /*#__PURE__*/React.createElement("div", {
+  }, "\u0421\u0435\u0439\u0447\u0430\u0441 \xB7 V6")), /*#__PURE__*/React.createElement("div", {
     className: 'frame-canvas' + (picking ? ' picking' : selected ? ' sel' : '')
   }, renderFn(), mode === 'after' && pins.map((p, i) => /*#__PURE__*/React.createElement("button", {
     key: p.id,
@@ -5368,7 +5429,7 @@ function SidePanel({
       frameId: frame.id,
       frameTitle: frame.title,
       frameGroup: frame.group,
-      round: 3,
+      round: 4,
       type,
       targetKind: needsComp ? 'component' : 'page',
       pinId: needsComp ? draftPin.id : null,
@@ -5388,7 +5449,7 @@ function SidePanel({
     className: "frame-title"
   }, frame.title), /*#__PURE__*/React.createElement("span", {
     className: "round-chip"
-  }, "Round 3 \u2192 V6")), /*#__PURE__*/React.createElement("div", {
+  }, "Round 4 \u2192 V7")), /*#__PURE__*/React.createElement("div", {
     className: "field-label"
   }, "\u0422\u0438\u043F \u043F\u0440\u0430\u0432\u043A\u0438"), /*#__PURE__*/React.createElement("div", {
     className: "type-grid"
@@ -5469,7 +5530,7 @@ function buildMarkdown(comments) {
     }).items.push(c);
   });
   let md = '# MrBit Limits — ревью\n\n_Сгенерировано: ' + new Date().toLocaleString('ru-RU') + '_\n\n';
-  md += '## Round 3 (→ V6) — новые комментарии: ' + comments.length + '\n\n';
+  md += '## Round 4 (→ V7) — новые комментарии: ' + comments.length + '\n\n';
   if (!comments.length) md += '_(пока нет)_\n\n';
   FRAMES.forEach(f => {
     const g = byFrame[f.id];
@@ -5497,7 +5558,7 @@ function buildJSON(comments) {
     tool: 'mrbit-limits-commenter',
     version: 3,
     generatedAt: new Date().toISOString(),
-    round3: {
+    round4: {
       total: comments.length,
       comments: comments.map(c => ({
         frameId: c.frameId,
@@ -5538,7 +5599,7 @@ function ExportModal({
     });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = tab === 'md' ? 'limits-comments-round3.md' : 'limits-comments-round3.json';
+    a.download = tab === 'md' ? 'limits-comments-round4.md' : 'limits-comments-round4.json';
     a.click();
     URL.revokeObjectURL(a.href);
   };
@@ -5555,7 +5616,7 @@ function ExportModal({
       fontWeight: 700,
       fontSize: 16
     }
-  }, "\u042D\u043A\u0441\u043F\u043E\u0440\u0442 \xB7 Round 3 (", comments.length, ") + \u0438\u0441\u0442\u043E\u0440\u0438\u044F"), /*#__PURE__*/React.createElement("button", {
+  }, "\u042D\u043A\u0441\u043F\u043E\u0440\u0442 \xB7 Round 4 (", comments.length, ") + \u0438\u0441\u0442\u043E\u0440\u0438\u044F"), /*#__PURE__*/React.createElement("button", {
     className: "modal-x",
     onClick: onClose
   }, "\u2715")), /*#__PURE__*/React.createElement("div", {
@@ -5632,7 +5693,7 @@ function Commenter() {
     setPicking(null);
   };
   const clearAll = () => {
-    if (!confirm('Удалить все НОВЫЕ комментарии и метки (Round 3)? Применённая история останется.')) return;
+    if (!confirm('Удалить все НОВЫЕ комментарии и метки (Round 4)? Применённая история останется.')) return;
     setComments([]);
     setPins([]);
     setDraftPinId(null);
@@ -5649,11 +5710,11 @@ function Commenter() {
     className: "bar-l"
   }, /*#__PURE__*/React.createElement("span", {
     className: "bar-title"
-  }, "MrBit \xB7 Limits \u2014 \u0440\u0435\u0432\u044C\u044E V5 ", /*#__PURE__*/React.createElement("span", {
+  }, "MrBit \xB7 Limits \u2014 \u0440\u0435\u0432\u044C\u044E V6 ", /*#__PURE__*/React.createElement("span", {
     className: "round-pill"
-  }, "Round 3 \u2192 V6")), /*#__PURE__*/React.createElement("span", {
+  }, "Round 4 \u2192 V7")), /*#__PURE__*/React.createElement("span", {
     className: "bar-sub"
-  }, "\u0422\u043E\u0433\u0433\u043B \xAB\u0418\u0441\u0445\u043E\u0434\u043D\u0430\u044F \xB7 V3 / \u0421\u0435\u0439\u0447\u0430\u0441 \xB7 V5\xBB \u043F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0435\u0442 \u044D\u0432\u043E\u043B\u044E\u0446\u0438\u044E. \u0418\u0441\u0442\u043E\u0440\u0438\u044F Round 1\u20132 \u2014 \u043F\u043E\u0434 \u043A\u0430\u0436\u0434\u044B\u043C \u044D\u043A\u0440\u0430\u043D\u043E\u043C. \u041D\u043E\u0432\u044B\u0435 \u043F\u0440\u0430\u0432\u043A\u0438 \u2014 \u0441\u043F\u0440\u0430\u0432\u0430.")), /*#__PURE__*/React.createElement("div", {
+  }, "\u0422\u043E\u0433\u0433\u043B \xAB\u0418\u0441\u0445\u043E\u0434\u043D\u0430\u044F \xB7 V3 / \u0421\u0435\u0439\u0447\u0430\u0441 \xB7 V6\xBB \u043F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0435\u0442 \u044D\u0432\u043E\u043B\u044E\u0446\u0438\u044E. \u0418\u0441\u0442\u043E\u0440\u0438\u044F Round 1\u20133 \u2014 \u043F\u043E\u0434 \u043A\u0430\u0436\u0434\u044B\u043C \u044D\u043A\u0440\u0430\u043D\u043E\u043C. \u041D\u043E\u0432\u044B\u0435 \u043F\u0440\u0430\u0432\u043A\u0438 \u2014 \u0441\u043F\u0440\u0430\u0432\u0430.")), /*#__PURE__*/React.createElement("div", {
     className: "bar-r"
   }, /*#__PURE__*/React.createElement("span", {
     className: "count-chip"
