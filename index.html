@@ -383,6 +383,7 @@ const USUAL = {
   monthly: 8000
 };
 const SESSION_OPTS = [1, 2, 4, 8, 12];
+const MINUTE_OPTS = [10, 20, 30, 40, 50, 60];
 const PERIOD_DESC = {
   daily: 'Rolling 24 hours',
   weekly: 'Rolling 7 days',
@@ -433,8 +434,8 @@ const INITIAL = {
     date: null
   },
   session: {
-    hours: null,
-    status: 'notset',
+    minutes: 10,
+    status: 'active',
     date: null
   }
 };
@@ -2286,6 +2287,86 @@ function CardV4({
       color: '#fff'
     }
   }, DAYNUM[period]));
+  if (isSession) {
+    const mins = limit.minutes || 10;
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        borderRadius: 8,
+        overflow: 'hidden',
+        width: '100%',
+        background: '#113255'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: 16,
+        display: 'flex',
+        gap: 12,
+        alignItems: 'center'
+      }
+    }, iconBox, /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: FONT,
+        fontWeight: 700,
+        fontSize: 14,
+        lineHeight: '20px',
+        color: '#fff'
+      }
+    }, "Session Duration"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        gap: 4,
+        alignItems: 'center',
+        fontSize: 12,
+        lineHeight: '16px'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: C.gray2
+      }
+    }, "Up to"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: '#fff',
+        fontWeight: 700
+      }
+    }, mins, " minutes"))), /*#__PURE__*/React.createElement("span", {
+      style: {
+        flexShrink: 0,
+        padding: '4px 8px',
+        borderRadius: 4,
+        background: PILL.active.bg,
+        color: PILL.active.c,
+        fontFamily: FONT,
+        fontWeight: 600,
+        fontSize: 12,
+        lineHeight: '16px'
+      }
+    }, "Active")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '0 16px 16px'
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: onEdit,
+      style: {
+        width: '100%',
+        height: 32,
+        borderRadius: 6,
+        background: '#007894',
+        color: '#fff',
+        fontFamily: FONT,
+        fontWeight: 700,
+        fontSize: 14,
+        lineHeight: '16px'
+      }
+    }, "Edit")));
+  }
   if (notset) {
     return /*#__PURE__*/React.createElement("button", {
       onClick: onEdit,
@@ -2810,7 +2891,7 @@ function ActionBlock({
   }, c.sub)), /*#__PURE__*/React.createElement("span", {
     style: {
       fontFamily: FONT,
-      fontWeight: 400,
+      fontWeight: 700,
       fontSize: 14,
       lineHeight: '20px',
       color: '#fff',
@@ -2905,6 +2986,15 @@ function DepositEditor({
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
+      fontFamily: FONT,
+      fontWeight: 400,
+      fontSize: 14,
+      lineHeight: '20px',
+      color: '#fff',
+      textAlign: 'center'
+    }
+  }, "Setting a limit will restrict the maximum deposit amount. If you turn it off, the restrictions will be lifted only after 24\xA0hours."), /*#__PURE__*/React.createElement("div", {
+    style: {
       display: 'flex',
       flexDirection: 'column',
       gap: 4,
@@ -2947,23 +3037,32 @@ function DepositEditor({
     style: {
       display: 'flex',
       gap: 8,
-      flexWrap: 'wrap',
       marginTop: 8
     }
-  }, PRESETS[period].map(v => /*#__PURE__*/React.createElement("button", {
-    key: v,
-    onClick: () => setAmount(String(v)),
-    style: {
-      fontFamily: FONT,
-      fontSize: 12,
-      fontWeight: 700,
-      color: '#fff',
-      borderRadius: 999,
-      padding: '6px 12px',
-      border: `2px solid ${num === v ? '#007894' : 'rgba(255,255,255,0.15)'}`,
-      background: num === v ? '#007894' : 'transparent'
-    }
-  }, v.toLocaleString('en-US')))), num > 0 && num !== usual && /*#__PURE__*/React.createElement("div", {
+  }, PRESETS[period].map(v => {
+    const on = num === v;
+    return /*#__PURE__*/React.createElement("button", {
+      key: v,
+      onClick: () => setAmount(String(v)),
+      style: {
+        flex: 1,
+        minWidth: 0,
+        height: 32,
+        boxSizing: 'border-box',
+        borderRadius: 6,
+        fontFamily: FONT,
+        fontSize: 14,
+        fontWeight: 700,
+        lineHeight: '16px',
+        color: '#fff',
+        border: on ? 'none' : '2px solid rgba(255,255,255,0.15)',
+        background: on ? '#007894' : 'transparent',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap'
+      }
+    }, v.toLocaleString('en-US'));
+  })), num > 0 && num !== usual && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 10,
       display: 'flex',
@@ -3000,7 +3099,7 @@ function DepositEditor({
       whiteSpace: 'nowrap'
     }
   }, "Use ", usual.toLocaleString('en-US')))), changes.length > 0 && /*#__PURE__*/React.createElement(ActionBlock, {
-    title: "Pending changes",
+    title: "Limit changes",
     items: changes,
     style: {
       marginTop: 'auto'
@@ -3035,12 +3134,11 @@ function DepositEditor({
 function SessionEditor({
   limits,
   go,
-  commitSession,
-  removeFlow
+  commitSession
 }) {
   const existing = limits.session;
-  const isEditing = existing.status !== 'notset' && existing.status !== 'removal';
-  const [hours, setHours] = useState(existing.hours || null);
+  const current = existing.minutes || 10;
+  const [minutes, setMinutes] = useState(current);
   return /*#__PURE__*/React.createElement("div", {
     className: "view",
     style: {
@@ -3055,39 +3153,41 @@ function SessionEditor({
       flexDirection: 'column',
       gap: 8
     }
-  }, /*#__PURE__*/React.createElement(Label, null, "Hours per session"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(Section, null, "Hours per session"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
       gridTemplateColumns: '1fr 1fr',
       gap: 10
     }
-  }, SESSION_OPTS.map(h => /*#__PURE__*/React.createElement("button", {
-    key: h,
-    onClick: () => setHours(h),
-    style: {
-      height: 40,
-      borderRadius: 6,
-      fontFamily: FONT,
-      fontSize: 15,
-      fontWeight: 700,
-      color: '#fff',
-      background: hours === h ? '#007894' : 'transparent',
-      border: hours === h ? 'none' : `2px solid rgba(255,255,255,0.15)`,
-      transition: 'all .12s'
-    }
-  }, h, " ", h === 1 ? 'Hour' : 'Hours')))), /*#__PURE__*/React.createElement("div", {
+  }, MINUTE_OPTS.map(m => {
+    const on = minutes === m;
+    return /*#__PURE__*/React.createElement("button", {
+      key: m,
+      onClick: () => setMinutes(m),
+      style: {
+        height: 40,
+        borderRadius: 6,
+        boxSizing: 'border-box',
+        fontFamily: FONT,
+        fontSize: 14,
+        fontWeight: 700,
+        lineHeight: '16px',
+        color: '#fff',
+        background: on ? '#007894' : 'transparent',
+        border: on ? 'none' : '2px solid rgba(255,255,255,0.15)',
+        transition: 'all .12s'
+      }
+    }, m, " minutes");
+  }))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 10,
       marginTop: 'auto'
     }
-  }, isEditing && /*#__PURE__*/React.createElement(Secondary, {
-    danger: true,
-    onClick: () => removeFlow('session')
-  }, "Remove Limit"), /*#__PURE__*/React.createElement(Primary, {
+  }, /*#__PURE__*/React.createElement(Primary, {
     variant: "gradient",
-    onClick: () => commitSession(hours, isEditing),
-    disabled: !hours || isEditing && hours === existing.hours
+    onClick: () => commitSession(minutes),
+    disabled: minutes === current
   }, "Continue")));
 }
 
@@ -3101,7 +3201,7 @@ function Review({
 }) {
   const [pw, setPw] = useState('');
   const summary = /*#__PURE__*/React.createElement(ActionBlock, {
-    title: "Pending changes",
+    title: "Limit changes",
     items: change.actions
   });
   if (!change.needsPassword) {
@@ -3114,9 +3214,9 @@ function Review({
         minHeight: '100%'
       }
     }, /*#__PURE__*/React.createElement(ActionBlock, {
-      title: "Pending changes",
+      title: "Limit changes",
       items: change.actions,
-      note: "This limit is stricter than your current one \u2014 it takes effect immediately."
+      note: change.kind === 'session' ? null : "This limit is stricter than your current one — it takes effect immediately."
     }), /*#__PURE__*/React.createElement("div", {
       style: {
         marginTop: 'auto'
@@ -3562,29 +3662,26 @@ function App() {
     setChange(descriptor);
     go('review');
   }
-  function commitSession(hours, isEditing) {
-    const prev = limits.session.status !== 'notset' ? limits.session.hours : null;
-    const tightening = !isEditing ? true : prev != null && hours < prev;
-    const val = hours + ' ' + (hours === 1 ? 'hour' : 'hours');
+  function commitSession(minutes) {
     setChange({
       kind: 'session',
-      tightening,
-      needsPassword: isEditing,
+      tightening: true,
+      needsPassword: false,
       actions: [{
-        k: isEditing ? 'updated' : 'created',
+        k: 'created',
         session: true,
-        tag: !isEditing ? 'New' : hours < prev ? 'Decrease' : 'Increase',
+        tag: 'New',
         title: 'Session limit',
-        sub: !isEditing ? 'Applies immediately' : hours < prev ? 'Applies immediately' : 'Applies in 24h',
-        value: val
+        sub: 'Applies immediately',
+        value: minutes + ' minutes'
       }],
       apply: () => setLimits(p => ({
         ...p,
         session: {
-          hours,
-          status: tightening ? 'active' : 'pending',
-          date: tightening ? null : futureDate(1),
-          dateTs: tightening ? null : ts24()
+          minutes,
+          status: 'active',
+          date: null,
+          dateTs: null
         }
       }))
     });
